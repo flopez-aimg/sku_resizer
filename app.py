@@ -7,7 +7,7 @@ import os
 # 1. Configuración de la página
 st.set_page_config(page_title="SKU Image Resizer Pro", page_icon="🖼️", layout="centered")
 
-# 2. CSS para Microanimaciones y Estilo Premium
+# 2. CSS para Microanimaciones, Estilo Premium y Personalización de Colores
 st.markdown("""
     <style>
     /* Animación de entrada suave */
@@ -19,16 +19,27 @@ st.markdown("""
         100% { opacity: 1; transform: translateY(0); }
     }
     
-    /* Estilo de botones con hover sutil */
-    .stButton>button {
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        border-radius: 10px;
-        font-weight: 600;
+    /* ESTILO ESPECÍFICO PARA EL BOTÓN DE CONVERTIR (Primary Button) */
+    div.stButton > button[kind="primary"] {
+        background-color: #d1f2d1 !important; /* Verde muy clarito */
+        color: #1a5c1a !important;           /* Verde oscuro */
+        border: 1px solid #b2e0b2 !important;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        height: 3em !important;
     }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        border-color: #4CAF50;
+    
+    div.stButton > button[kind="primary"]:hover {
+        background-color: #b2e0b2 !important; /* Un toque más oscuro al pasar el mouse */
+        transform: translateY(-2px) !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Estilo para los demás botones (Secundarios) */
+    .stButton>button {
+        transition: all 0.3s ease;
+        border-radius: 10px;
     }
     
     /* Personalización del área de carga */
@@ -37,9 +48,6 @@ st.markdown("""
         border-radius: 15px;
         background-color: #f9fff9;
         transition: background-color 0.3s ease;
-    }
-    [data-testid="stFileUploadDropzone"]:hover {
-        background-color: #f0fff0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -60,14 +68,14 @@ st.write("Optimiza tus SKUs en segundos: ajusta tamaño, centra y mantén transp
 # Barra lateral de configuración
 with st.sidebar:
     st.header("⚙️ Configuración")
-    target_w = st.number_input("Ancho Base (px)", value=500, help="Ancho final de la imagen")
-    target_h = st.number_input("Altura (px)", value=375, help="Altura final de la imagen")
+    target_w = st.number_input("Ancho Base (px)", value=500)
+    target_h = st.number_input("Altura (px)", value=375)
     quality = st.slider("Calidad JPG", 10, 100, 90)
     
     st.markdown("---")
     if st.button("🗑️ Limpiar Todo", use_container_width=True):
         clear_all()
-    st.caption("v1.2 - Hecho para diseñadores")
+    st.caption("v1.3 - UI Personalizada")
 
 # Área de carga principal
 st.markdown("### 📂 Carga de trabajo")
@@ -78,7 +86,7 @@ uploaded_files = st.file_uploader(
     key=f"uploader_{st.session_state['uploader_key']}"
 )
 
-# Botón de acción
+# Botón de acción (Mantenemos type="primary" para que tome los colores verdes del CSS arriba)
 if st.button("🚀 Convertir Imágenes", use_container_width=True, type="primary"):
     if not uploaded_files:
         st.warning("⚠️ Primero selecciona o arrastra algunas imágenes.")
@@ -92,22 +100,18 @@ if st.button("🚀 Convertir Imágenes", use_container_width=True, type="primary
             for i, file in enumerate(uploaded_files):
                 status_text.text(f"Procesando: {file.name}")
                 
-                # Abrir imagen
                 img = Image.open(file)
                 original_format = img.format 
                 
-                # Identificar si necesita transparencia o fondo blanco
-                # Si el original es PNG/WEBP o tiene canal Alpha, usamos RGBA
                 if img.mode in ("RGBA", "LA") or (original_format in ["PNG", "WEBP"]):
                     mode = "RGBA"
-                    bg_color = (0, 0, 0, 0) # Transparente
+                    bg_color = (0, 0, 0, 0) 
                 else:
                     mode = "RGB"
-                    bg_color = (255, 255, 255) # Blanco
+                    bg_color = (255, 255, 255) 
                 
                 img = img.convert(mode)
 
-                # Cálculo de Redimensión Proporcional (Fit)
                 w, h = img.size
                 aspect_ratio = w / h
                 new_width = int(target_h * aspect_ratio)
@@ -120,16 +124,13 @@ if st.button("🚀 Convertir Imágenes", use_container_width=True, type="primary
                 
                 img_resized = img.resize((new_width, new_height), Image.LANCZOS)
 
-                # Crear lienzo final y centrado absoluto
                 final_img = Image.new(mode, (target_w, target_h), bg_color)
                 x_offset = (target_w - new_width) // 2
                 y_offset = (target_h - new_height) // 2
                 
-                # Pegar usando máscara si hay transparencia
                 mask = img_resized if mode == "RGBA" else None
                 final_img.paste(img_resized, (x_offset, y_offset), mask)
 
-                # Guardar en buffer de memoria
                 img_io = io.BytesIO()
                 if mode == "RGBA":
                     final_img.save(img_io, "PNG")
@@ -138,11 +139,9 @@ if st.button("🚀 Convertir Imágenes", use_container_width=True, type="primary
                     final_img.save(img_io, "JPEG", quality=quality)
                     ext = ".jpg"
                 
-                # Agregar al ZIP conservando el nombre pero con la extensión correcta
                 clean_name = os.path.splitext(file.name)[0] + ext
                 zip_file.writestr(clean_name, img_io.getvalue())
                 
-                # Actualizar progreso
                 progress_bar.progress((i + 1) / len(uploaded_files))
             
             status_text.text("✅ ¡Procesamiento completado!")
