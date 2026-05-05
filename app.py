@@ -80,7 +80,8 @@ with st.sidebar:
 # Área de carga principal
 st.markdown("### 📂 Carga de trabajo")
 uploaded_files = st.file_uploader(
-    "Arrastra tus archivos O UNA CARPETA ENTERA aquí", 
+    "Arrastrá o seleccioaná tus archivos para convertir.
+    Si querés convertir una carpeta entera, buscala en tu PC y arrastrala ", 
     accept_multiple_files=True, 
     type=['png', 'jpg', 'jpeg', 'webp'],
     key=f"uploader_{st.session_state['uploader_key']}"
