@@ -16,7 +16,7 @@ if "uploader_key" not in st.session_state:
     st.session_state["uploader_key"] = 0
 
 st.title("🖼️ SKU Image Resizer")
-st.write("Sube tus imágenes, ajusta el tamaño y descarga todo en un ZIP.")
+st.write("Subí tus imágenes con su nombre final, ajustá el tamaño y descargá todo en un ZIP.")
 
 # 1. Parámetros de diseño en la barra lateral
 with st.sidebar:
