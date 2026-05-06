@@ -63,7 +63,7 @@ def clear_all():
 # --- INTERFAZ DE USUARIO ---
 
 st.title("🖼️ SKU Image Resizer")
-st.write("Optimiza tus SKUs en segundos: ajusta tamaño, centra y mantén transparencias.")
+st.write("Optimizá tus SKUs en segundos: ajusta el tamaño, centra y mantiene transparencias.")
 
 # Barra lateral de configuración
 with st.sidebar:
